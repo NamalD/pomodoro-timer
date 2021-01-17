@@ -65,7 +65,6 @@ function App() {
     }
   }
 
-
   const handleStatusChange = (newStatus: Status) => {
     // Start the timer when starting a new session
     if (status === "New" && newStatus === "Running") {
