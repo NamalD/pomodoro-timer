@@ -21,7 +21,8 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(FormatSeconds(secondsLeft));
 
   useEffect(() => {
-    const newPercent = secondsLeft / DEFAULT_POMODORO_SECONDS;
+    const percentDivisor = mode === "Pomodoro" ? DEFAULT_POMODORO_SECONDS : DEFAULT_BREAK_SECONDS;
+    const newPercent = secondsLeft / percentDivisor;
     setPercentage(newPercent)
 
     const newTimeLeft = FormatSeconds(secondsLeft);
@@ -29,21 +30,46 @@ function App() {
   }, [secondsLeft]);
 
   // Track mode and running status
+  const [timeout, setTimeout] = useState<NodeJS.Timeout | undefined>(undefined);
   const [mode, setMode] = useState<Mode>("Pomodoro");
   const [status, setStatus] = useState<Status>("New");
   const statusRef = useRef(status);
   statusRef.current = status;
 
-  const subtractSecond = () => {
-    if (statusRef.current === "Running") {
-      setSecondsLeft(secondsLeftRef.current - 1);
+  const changeMode = () => {
+    if (mode === "Pomodoro") {
+      setMode("Break");
+      setSecondsLeft(DEFAULT_BREAK_SECONDS);
+    } else {
+      setMode("Pomodoro");
+      setSecondsLeft(DEFAULT_POMODORO_SECONDS);
+    }
+
+    setStatus("New");
+    if (timeout !== undefined) {
+      clearInterval(timeout);
     }
   }
+
+  // TODO: Change to use target time instead of relying on event to subtract time
+  const subtractSecond = () => {
+    if (statusRef.current === "Running") {
+      const newSecondsLeft = secondsLeftRef.current - 1;
+      setSecondsLeft(newSecondsLeft);
+
+      console.log("Mode:", mode, "Seconds left:", newSecondsLeft);
+
+      if (newSecondsLeft <= 0) {
+        changeMode();
+      }
+    }
+  }
+
 
   const handleStatusChange = (newStatus: Status) => {
     // Start the timer when starting a new session
     if (status === "New" && newStatus === "Running") {
-      setInterval(subtractSecond, 1000);
+      setTimeout(setInterval(subtractSecond, 1000));
     }
 
     setStatus(newStatus);
@@ -56,7 +82,11 @@ function App() {
                       width={8}
                       colors={{
                         completed: COLOURS.gray,
-                        remainder: status === "Paused" ? COLOURS.red : COLOURS.green
+                        remainder: status === "Paused"
+                          ? COLOURS.red
+                          : mode === "Pomodoro"
+                            ? COLOURS.green
+                            : COLOURS.yellow
                       }}/>
 
       <PomodoroStatus onStatusChanged={handleStatusChange}
