@@ -16,7 +16,7 @@ export const Circle = (props: CircleProps) => {
       strokeDashoffset: offset,
       style: {
         transform: 'rotate(-90deg)',
-        transition: 'stroke-dashoffset 200ms ease-in-out'
+        transition: 'all 100ms ease-in-out'
       }
     };
 

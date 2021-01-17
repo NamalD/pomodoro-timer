@@ -5,6 +5,7 @@ import {setInterval} from "timers";
 import {PomodoroStatus} from "./PomodoroStatus";
 import {Mode, Status} from "./Components/Types";
 import {FormatSeconds} from "./Helpers/Time";
+import {COLOURS} from "./Constants/Style";
 
 function App() {
   const DEFAULT_POMODORO_SECONDS = 25 * 60; // 25 minutes
@@ -52,10 +53,10 @@ function App() {
     <div className="App">
       <ProgressCircle radius={100}
                       percentage={percentage}
-                      width={10}
+                      width={8}
                       colors={{
-                        completed: 'darkgray',
-                        remainder: 'green'
+                        completed: COLOURS.gray,
+                        remainder: status === "Paused" ? COLOURS.red : COLOURS.green
                       }}/>
 
       <PomodoroStatus onStatusChanged={handleStatusChange}
