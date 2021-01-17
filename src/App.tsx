@@ -1,12 +1,10 @@
-import React, {CSSProperties, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import {ProgressCircle} from "./Components/ProgressCircle";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPause, faPlay} from "@fortawesome/free-solid-svg-icons";
 import {setInterval} from "timers";
-
-type Mode = "Pomodoro" | "Break";
-type Status = "New" | "Running" | "Paused";
+import {PomodoroStatus} from "./PomodoroStatus";
+import {Mode, Status} from "./Components/Types";
+import {FormatSeconds} from "./Helpers/Time";
 
 function App() {
   const DEFAULT_POMODORO_SECONDS = 25 * 60; // 25 minutes
@@ -25,36 +23,12 @@ function App() {
   }, [secondsLeft]);
 
   // Calculate time string when seconds change
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs}`;
-  }
-
-  const [timeLeft, setTimeLeft] = useState(formatTime(secondsLeft));
+  const [timeLeft, setTimeLeft] = useState(FormatSeconds(secondsLeft));
   useEffect(() => {
-    setTimeLeft(formatTime(secondsLeft))
+    const newTimeLeft = FormatSeconds(secondsLeft);
+    setTimeLeft(newTimeLeft);
   }, [secondsLeft]);
 
-  // TODO: Move to mode button component
-  const playStyle: CSSProperties = {
-    position: "absolute",
-    top: '50%',
-    transform: "translateY(-50%) translateX(-50%)"
-  }
-
-  const pauseStyle: CSSProperties = {
-    position: "absolute",
-    top: '50%',
-    transform: "translateY(-50%) translateX(-50%)"
-  }
-
-  const countdownStyle: CSSProperties = {
-    position: "absolute",
-    top: '50%',
-    fontSize: "xxx-large",
-    transform: "translateY(-50%) translateX(-50%)"
-  }
 
   // Track mode and running status
   const [mode, setMode] = useState<Mode>("Pomodoro");
@@ -62,23 +36,19 @@ function App() {
   const statusRef = useRef(status);
   statusRef.current = status;
 
-  const startTimer = () => {
-    const subtractSecond = () => {
-      if (statusRef.current === "Running") {
-        setSecondsLeft(secondsLeftRef.current - 1);
-      }
+  const subtractSecond = () => {
+    if (statusRef.current === "Running") {
+      setSecondsLeft(secondsLeftRef.current - 1);
+    }
+  }
+
+  const handleStatusChange = (newStatus: Status) => {
+    // Start the timer when starting a new session
+    if (status === "New" && newStatus === "Running") {
+      setInterval(subtractSecond, 1000);
     }
 
-    setStatus("Running");
-    setInterval(subtractSecond, 1000);
-  }
-
-  const pauseTimer = () => {
-    setStatus("Paused");
-  }
-
-  const resumeTimer = () => {
-    setStatus("Running");
+    setStatus(newStatus);
   }
 
   return (
@@ -89,22 +59,11 @@ function App() {
                       colors={{
                         completed: 'darkgray',
                         remainder: 'green'
-                      }}
-      />
-      {status === "New"
-        ? <FontAwesomeIcon icon={faPlay} size={"10x"} style={playStyle} onClick={startTimer}/>
-        : null
-      }
+                      }}/>
 
-      {status === "Running"
-        ? <label style={countdownStyle} onClick={pauseTimer}>{timeLeft}</label>
-        : null
-      }
-
-      {status === "Paused"
-        ? <FontAwesomeIcon icon={faPause} size={"10x"} style={pauseStyle} onClick={resumeTimer}/>
-        : null
-      }
+      <PomodoroStatus onStatusChanged={handleStatusChange}
+                      runningText={timeLeft}
+                      status={status}/>
     </div>
   );
 }
