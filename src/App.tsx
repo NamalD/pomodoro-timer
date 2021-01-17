@@ -15,20 +15,17 @@ function App() {
   const secondsLeftRef = useRef(secondsLeft);
   secondsLeftRef.current = secondsLeft;
 
-  // Calculate percent when seconds change
+  // Calculate percent and time string when seconds change
   const [percentage, setPercentage] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(FormatSeconds(secondsLeft));
+
   useEffect(() => {
     const newPercent = secondsLeft / DEFAULT_POMODORO_SECONDS;
     setPercentage(newPercent)
-  }, [secondsLeft]);
 
-  // Calculate time string when seconds change
-  const [timeLeft, setTimeLeft] = useState(FormatSeconds(secondsLeft));
-  useEffect(() => {
     const newTimeLeft = FormatSeconds(secondsLeft);
     setTimeLeft(newTimeLeft);
   }, [secondsLeft]);
-
 
   // Track mode and running status
   const [mode, setMode] = useState<Mode>("Pomodoro");
